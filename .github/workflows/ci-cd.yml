@@ -1,0 +1,53 @@
+name: CI/CD Pipeline viatges
+
+# Es dispara quan es fa push o pull request a la branca main
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # FASES 1 i 2: Integració Contínua (Instal·lació, Build, Lint i Test)
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del codi
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instal·lar dependències
+        run: npm install
+
+      - name: Build del projecte
+        run: npm run build
+
+      - name: Anàlisi amb ESLint
+        run: npm run lint
+
+      - name: Executar tests
+        run: npm run test
+
+  # FASE 3: Desplegament Continu (Només si el pas anterior funciona)
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    
+    # Només despleguem si és un push directe a main (ex. en aprovar una Pull Request)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout del codi
+        uses: actions/checkout@v4
+
+      # Exemple de desplegament manual a Vercel (Pots adaptar-ho si fas servir Railway)
+      - name: Desplegar a Vercel
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
