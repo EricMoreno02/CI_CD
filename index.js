@@ -18,3 +18,8 @@ if (require.main === module) {
 }
 
 module.exports = app; // Exportem per poder fer el test
+
+// Nou endpoint per comprovar la Pull Request
+app.get('/api/nou', (req, res) => {
+  res.json({ missatge: 'Aquest és un endpoint fals per la PR' });
+});
